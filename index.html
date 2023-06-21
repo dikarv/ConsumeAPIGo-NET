@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        #resultContainer {
+            border: 1px solid #d4d4d4;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+
+        #resultContainer h3 {
+            margin-top: 0;
+        }
+
+        #resultContainer pre {
+            white-space: pre-wrap;
+        }
+
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d4d4d4;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+        }
+
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+        }
+
+        .autocomplete-item:hover {
+            background-color: #e9e9e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Data Retrieval</h1>
+
+        <form id="dataForm">
+            <label for="negara">Negara:</label>
+            <input type="text" id="negara" name="negara" autocomplete="off"><br>
+
+            <label for="hsCode">HS Code:</label>
+            <input type="text" id="hsCode" name="hsCode" autocomplete="off"><br>
+
+            <label for="kdnegara">Kode Negara:</label>
+            <input type="text" id="kdnegara" name="kdnegara" autocomplete="off"><br>
+
+            <label for="pelabuhan">Pelabuhan:</label>
+            <input type="text" id="pelabuhan" name="pelabuhan" autocomplete="off"><br>
+
+            <input type="submit" value="Retrieve Data">
+        </form>
+
+        <div id="resultContainer"></div>
+    </div>
+
+    <script>
+        function populateAutocomplete(inputId, apiUrl) {
+            const input = document.getElementById(inputId);
+            const autocompleteItems = document.createElement('div');
+            autocompleteItems.classList.add('autocomplete-items');
+            input.parentNode.appendChild(autocompleteItems);
+
+            input.addEventListener('input', function() {
+                const query = input.value;
+
+                fetch(`${apiUrl}${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        autocompleteItems.innerHTML = '';
+
+                        data.forEach(item => {
+                            const option = document.createElement('div');
+                            option.classList.add('autocomplete-item');
+                            option.textContent = item;
+
+                            option.addEventListener('click', function() {
+                                input.value = item;
+                                autocompleteItems.innerHTML = '';
+                            });
+
+                            autocompleteItems.appendChild(option);
+                        });
+                    });
+            });
+        }
+
+        
+
+        document.getElementById("dataForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            var form = event.target;
+            var negara = form.elements["negara"].value;
+            var hsCode = form.elements["hsCode"].value;
+            var kdnegara = form.elements["kdnegara"].value;
+            var pelabuhan = form.elements["pelabuhan"].value;
+
+            var urNegaraUrl = "https://insw-dev.ilcs.co.id/n/negara?ur_negara=" + encodeURIComponent(negara);
+            var pelabuhanUrl = "https://insw-dev.ilcs.co.id/n/pelabuhan?kd_negara=" + encodeURIComponent(kdnegara) + "&ur_pelabuhan=" + encodeURIComponent(pelabuhan);
+            var barangUrl = "https://insw-dev.ilcs.co.id/n/barang?hs_code=" + encodeURIComponent(hsCode);
+            var tarifUrl = "https://insw-dev.ilcs.co.id/n/tarif?hs_code=" + encodeURIComponent(hsCode);
+            populateAutocomplete('negara', 'https://insw-dev.ilcs.co.id/n/negara?ur_negara=');
+            populateAutocomplete('pelabuhan', pelabuhanUrl);
+
+            var resultContainer = document.getElementById("resultContainer");
+            resultContainer.innerHTML = "";
+
+            await retrieveData(urNegaraUrl, "Negara Data:");
+            await retrieveData(pelabuhanUrl, "Pelabuhan Data:");
+            await retrieveData(barangUrl, "Barang Data:");
+            await retrieveData(tarifUrl, "Tarif Data:");
+
+            async function retrieveData(url, label) {
+                try {
+                    var response = await fetch(url);
+                    if (response.ok) {
+                        var data = await response.text();
+                        resultContainer.innerHTML += "<h3>" + label + "</h3>";
+                        resultContainer.innerHTML += "<pre>" + data + "</pre>";
+                    } else {
+                        resultContainer.innerHTML += "<p>Failed to retrieve data. Status code: " + response.status + "</p>";
+                    }
+                } catch (error) {
+                    resultContainer.innerHTML += "<p>Failed to retrieve data. Error: " + error + "</p>";
+                }
+            }
+        });
+    </script>
+</body>
+</html>
