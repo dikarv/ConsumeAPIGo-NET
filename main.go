@@ -4,11 +4,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 )
 
 func main() {
+	args := os.Args[1:]
+	if len(args) != 4 {
+		fmt.Println("Usage: go run main.go <ur_negara> <hs_code> <kd_negara> <ur_pelabuhan>")
+		return
+	}
+
+	urNegara := args[0]
+	hsCode := args[1]
+	kdNegara := args[2]
+	urPelabuhan := args[3]
+
 	// Mengonsumsi API Negara
-	negaraURL := "https://insw-dev.ilcs.co.id/n/negara?ur_negara=SIN"
+	negaraURL := "https://insw-dev.ilcs.co.id/n/negara?ur_negara=" + urNegara
 	negaraResponse, err := http.Get(negaraURL)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -28,7 +40,7 @@ func main() {
 	fmt.Println()
 
 	// Mengonsumsi API Pelabuhan
-	pelabuhanURL := "https://insw-dev.ilcs.co.id/n/pelabuhan?kd_negara=SG&ur_pelabuhan=jur"
+	pelabuhanURL := "https://insw-dev.ilcs.co.id/n/pelabuhan?kd_negara=" + kdNegara + "&ur_pelabuhan=" + urPelabuhan
 	pelabuhanResponse, err := http.Get(pelabuhanURL)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -48,7 +60,7 @@ func main() {
 	fmt.Println()
 
 	// Mengonsumsi API Barang
-	barangURL := "https://insw-dev.ilcs.co.id/n/barang?hs_code=02044200"
+	barangURL := "https://insw-dev.ilcs.co.id/n/barang?hs_code=" + hsCode
 	barangResponse, err := http.Get(barangURL)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -68,7 +80,7 @@ func main() {
 	fmt.Println()
 
 	// Mengonsumsi API Tarif
-	tarifURL := "https://insw-dev.ilcs.co.id/n/tarif?hs_code=10079000"
+	tarifURL := "https://insw-dev.ilcs.co.id/n/tarif?hs_code=" + hsCode
 	tarifResponse, err := http.Get(tarifURL)
 	if err != nil {
 		fmt.Println("Error:", err)
